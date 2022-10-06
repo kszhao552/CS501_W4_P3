@@ -16,6 +16,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor sensor;
 
     private final float NOISE = (float) 10.0;
+    private final float SHAKE = (float) 800;
+    private final int TIME_DELAY = 100;
+    private long lastTime = 0;
     private boolean flag;
     private float lastX;
     private float lastY;
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float x = event.values[0];
         float y = event.values[1];
         float z = event.values[2];
+        long curTime = System.currentTimeMillis();
 
         if (!flag){
             lastX = x;
@@ -71,10 +75,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (deltaY < NOISE) deltaY = (float)0.0;
             if (deltaZ < NOISE) deltaZ = (float)0.0;
 
-            lastX = x;
-            lastY = y;
-            lastZ = z;
-
             if (deltaX != 0 && deltaX >= deltaY && deltaX >= deltaZ) {
                 web.loadUrl(xWeb);
             } else if (deltaY != 0 && deltaY > deltaX && deltaY > deltaZ) {
@@ -82,6 +82,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             } else if (deltaZ != 0 && deltaZ > deltaX && deltaZ > deltaY) {
                 web.loadUrl(zWeb);
             }
+
+            if (curTime-lastTime>TIME_DELAY) {
+                long diffTime = curTime-lastTime;
+                lastTime = curTime;
+                float speed = Math.abs(x+y+z - lastX - lastY - lastZ) / diffTime * 10000;
+                if (speed > SHAKE){
+                    web.loadUrl(shakeWeb);
+                }
+            }
+
+
+            lastX = x;
+            lastY = y;
+            lastZ = z;
         }
     }
 }
